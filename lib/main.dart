@@ -4,6 +4,7 @@ import 'core/theme/app_theme.dart';
 import 'navigation/app_router.dart';
 import 'providers/app_provider.dart';
 import 'providers/mandir_provider.dart';
+import 'providers/aarti_provider.dart';
 
 void main() {
   runApp(const DevasthanApp());
@@ -18,6 +19,7 @@ class DevasthanApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AppProvider()),
         ChangeNotifierProvider(create: (_) => MandirProvider()),
+        ChangeNotifierProvider(create: (_) => AartiProvider()),
       ],
       child: Consumer<AppProvider>(
         builder: (context, appProvider, _) {
