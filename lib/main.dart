@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'navigation/app_router.dart';
 import 'providers/app_provider.dart';
+import 'providers/mandir_provider.dart';
 
 void main() {
   runApp(const DevasthanApp());
@@ -13,8 +14,11 @@ class DevasthanApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AppProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AppProvider()),
+        ChangeNotifierProvider(create: (_) => MandirProvider()),
+      ],
       child: Consumer<AppProvider>(
         builder: (context, appProvider, _) {
           return MaterialApp.router(
