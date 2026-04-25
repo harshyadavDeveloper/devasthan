@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'navigation/app_router.dart';
 import 'providers/app_provider.dart';
 import 'providers/mandir_provider.dart';
 import 'providers/aarti_provider.dart';
+import 'providers/streak_provider.dart';
+import 'providers/alarm_provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
   runApp(const DevasthanApp());
 }
 
@@ -20,6 +25,14 @@ class DevasthanApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AppProvider()),
         ChangeNotifierProvider(create: (_) => MandirProvider()),
         ChangeNotifierProvider(create: (_) => AartiProvider()),
+        ChangeNotifierProxyProvider0<StreakProvider>(
+          create: (_) => StreakProvider()..init(),
+          update: (_, prev) => prev ?? (StreakProvider()..init()),
+        ),
+        ChangeNotifierProxyProvider0<AlarmProvider>(
+          create: (_) => AlarmProvider()..init(),
+          update: (_, prev) => prev ?? (AlarmProvider()..init()),
+        ),
       ],
       child: Consumer<AppProvider>(
         builder: (context, appProvider, _) {

@@ -1,3 +1,4 @@
+import 'package:devasthan/providers/streak_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -113,7 +114,7 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 20),
 
                 // ── Streak Card ────────────────────────────────
-                _StreakCard(streak: appProvider.streak),
+                _StreakCard(streak: context.watch<StreakProvider>().streak),
                 const SizedBox(height: 16),
 
                 // ── Daily Aarti Card ───────────────────────────
