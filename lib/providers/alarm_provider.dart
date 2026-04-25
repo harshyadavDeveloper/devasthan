@@ -1,6 +1,9 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz_data;
 
 class AlarmProvider extends ChangeNotifier {
   static const _boxName = 'alarm_box';
@@ -19,15 +22,35 @@ class AlarmProvider extends ChangeNotifier {
   TimeOfDay get time => _time;
   bool get enabled => _enabled;
 
+  // How long until next alarm fires
+  Duration get timeUntilAlarm {
+    final now = DateTime.now();
+    var target =
+        DateTime(now.year, now.month, now.day, _time.hour, _time.minute);
+    if (target.isBefore(now)) target = target.add(const Duration(days: 1));
+    return target.difference(now);
+  }
+
   String get timeLabel {
-    final h = _time.hour.toString().padLeft(2, '0');
-    final m = _time.minute.toString().padLeft(2, '0');
     final period = _time.hour < 12 ? 'AM' : 'PM';
     final hour12 = _time.hourOfPeriod == 0 ? 12 : _time.hourOfPeriod;
+    final m = _time.minute.toString().padLeft(2, '0');
     return '${hour12.toString().padLeft(2, '0')}:$m $period';
   }
 
+  // e.g. "in 3 hours 20 minutes" or "in 45 minutes"
+  String get timeUntilLabel {
+    final d = timeUntilAlarm;
+    final h = d.inHours;
+    final m = d.inMinutes.remainder(60);
+    if (h > 0 && m > 0) return 'in $h hr ${m} min';
+    if (h > 0) return 'in $h hour${h == 1 ? '' : 's'}';
+    return 'in $m minute${m == 1 ? '' : 's'}';
+  }
+
   Future<void> init() async {
+    tz_data.initializeTimeZones();
+
     _box = await Hive.openBox(_boxName);
     _time = TimeOfDay(
       hour: _box.get(_keyHour, defaultValue: 6),
@@ -35,11 +58,23 @@ class AlarmProvider extends ChangeNotifier {
     );
     _enabled = _box.get(_keyEnabled, defaultValue: false);
 
-    // Init notifications
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
     const ios = DarwinInitializationSettings();
     const settings = InitializationSettings(android: android, iOS: ios);
     await _notif.initialize(settings);
+
+    // Request permissions
+    await _notif
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
+
+    await _notif
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestExactAlarmsPermission();
+
+    if (_enabled) await _schedule();
   }
 
   Future<void> setTime(TimeOfDay time) async {
@@ -62,28 +97,52 @@ class AlarmProvider extends ChangeNotifier {
   }
 
   Future<void> _schedule() async {
-    // Daily repeating notification at chosen time
-    const androidDetails = AndroidNotificationDetails(
-      'devasthan_aarti',
-      'Daily Aarti',
-      channelDescription: 'Your daily morning aarti reminder',
-      importance: Importance.high,
-      priority: Priority.high,
-      playSound: true,
-    );
-    const iosDetails = DarwinNotificationDetails();
-    final details =
-        NotificationDetails(android: androidDetails, iOS: iosDetails);
+    await _notif.cancel(_notifId);
 
-    // Schedule daily at chosen time
-    // Using periodically for simplicity — upgrade to zonedSchedule for exact time in v2
-    await _notif.periodicallyShow(
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduled = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      _time.hour,
+      _time.minute,
+    );
+
+    if (scheduled.isBefore(now)) {
+      scheduled = scheduled.add(const Duration(days: 1));
+    }
+
+    final androidDetails = AndroidNotificationDetails(
+      'devasthan_aarti_channel',
+      'Daily Aarti Alarm',
+      channelDescription: 'Daily aarti reminder from Devasthan',
+      importance: Importance.max,
+      priority: Priority.max,
+      playSound: true,
+      enableVibration: true,
+      vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
+      fullScreenIntent: true,
+      visibility: NotificationVisibility.public,
+      category: AndroidNotificationCategory.alarm,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentSound: true,
+      presentBadge: true,
+      presentAlert: true,
+    );
+
+    await _notif.zonedSchedule(
       _notifId,
       '🙏 Time for Aarti',
-      'Your daily devotion awaits. Jai Shri Ram!',
-      RepeatInterval.daily,
-      details,
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      'Your daily devotion awaits. Jai Shri Ram! 🪔',
+      scheduled,
+      NotificationDetails(android: androidDetails, iOS: iosDetails),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.time,
     );
   }
 }

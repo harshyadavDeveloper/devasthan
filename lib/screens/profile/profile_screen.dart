@@ -10,10 +10,10 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appProvider    = context.watch<AppProvider>();
+    final appProvider = context.watch<AppProvider>();
     final streakProvider = context.watch<StreakProvider>();
-    final alarmProvider  = context.watch<AlarmProvider>();
-    final theme          = Theme.of(context);
+    final alarmProvider = context.watch<AlarmProvider>();
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profile & Settings')),
@@ -23,40 +23,56 @@ class ProfileScreen extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-
                 // ── Avatar ────────────────────────────────────
                 Center(
                   child: Column(
                     children: [
                       Container(
-                        width: 90, height: 90,
+                        width: 90,
+                        height: 90,
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             colors: [AppColors.saffron, AppColors.gold],
                           ),
                           shape: BoxShape.circle,
-                          boxShadow: [BoxShadow(color: AppColors.saffron.withOpacity(0.3), blurRadius: 16)],
+                          boxShadow: [
+                            BoxShadow(
+                                color: AppColors.saffron.withOpacity(0.3),
+                                blurRadius: 16)
+                          ],
                         ),
-                        child: const Center(child: Text('🙏', style: TextStyle(fontSize: 40))),
+                        child: const Center(
+                            child: Text('🙏', style: TextStyle(fontSize: 40))),
                       ),
                       const SizedBox(height: 12),
-                      Text('Devotee', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
+                      Text('Devotee',
+                          style: theme.textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.w700)),
                       const SizedBox(height: 4),
-                      Text('Your personal sacred space', style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey)),
+                      Text('Your personal sacred space',
+                          style: theme.textTheme.bodyMedium
+                              ?.copyWith(color: Colors.grey)),
                     ],
                   ),
                 ),
                 const SizedBox(height: 28),
 
                 // ── Streak ────────────────────────────────────
-                _SectionLabel('My Practice'),
+                const _SectionLabel('My Practice'),
                 Card(
                   child: ListTile(
                     leading: const Text('🔥', style: TextStyle(fontSize: 26)),
-                    title: const Text('Current Streak', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600)),
+                    title: const Text('Current Streak',
+                        style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w600)),
                     trailing: Text(
                       '${streakProvider.streak} days',
-                      style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700, color: AppColors.saffron, fontSize: 16),
+                      style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.saffron,
+                          fontSize: 16),
                     ),
                   ),
                 ),
@@ -67,10 +83,16 @@ class ProfileScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       SwitchListTile(
-                        secondary: const Text('⏰', style: TextStyle(fontSize: 26)),
-                        title: const Text('Daily Aarti Alarm', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600)),
+                        secondary:
+                            const Text('⏰', style: TextStyle(fontSize: 26)),
+                        title: const Text('Daily Aarti Alarm',
+                            style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w600)),
                         subtitle: Text(
-                          alarmProvider.enabled ? 'Rings at ${alarmProvider.timeLabel}' : 'Tap to enable',
+                          alarmProvider.enabled
+                              ? 'Rings at ${alarmProvider.timeLabel}'
+                              : 'Tap to enable',
                           style: const TextStyle(fontFamily: 'Poppins'),
                         ),
                         value: alarmProvider.enabled,
@@ -81,17 +103,67 @@ class ProfileScreen extends StatelessWidget {
                         const Divider(height: 0),
                         ListTile(
                           leading: const SizedBox(width: 26),
-                          title: const Text('Change Time', style: TextStyle(fontFamily: 'Poppins')),
+                          title: const Text('Change Time',
+                              style: TextStyle(fontFamily: 'Poppins')),
                           trailing: Text(
                             alarmProvider.timeLabel,
-                            style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, color: AppColors.saffron),
+                            style: const TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.saffron),
                           ),
                           onTap: () async {
                             final picked = await showTimePicker(
                               context: context,
                               initialTime: alarmProvider.time,
                             );
-                            if (picked != null) alarmProvider.setTime(picked);
+                            if (picked != null) {
+                              await alarmProvider.setTime(picked);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: AppColors.saffron,
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                    margin: const EdgeInsets.all(16),
+                                    duration: const Duration(seconds: 3),
+                                    content: Row(
+                                      children: [
+                                        const Text('⏰',
+                                            style: TextStyle(fontSize: 20)),
+                                        const SizedBox(width: 10),
+                                        Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'Alarm set!',
+                                              style: TextStyle(
+                                                fontFamily: 'Poppins',
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 14,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            Text(
+                                              'Rings ${alarmProvider.timeUntilLabel} at ${alarmProvider.timeLabel}',
+                                              style: const TextStyle(
+                                                fontFamily: 'Poppins',
+                                                fontSize: 12,
+                                                color: Colors.white70,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
                           },
                         ),
                       ],
@@ -101,12 +173,16 @@ class ProfileScreen extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // ── Theme ─────────────────────────────────────
-                _SectionLabel('Appearance'),
+                const _SectionLabel('Appearance'),
                 Card(
                   child: SwitchListTile(
                     secondary: const Text('🌙', style: TextStyle(fontSize: 26)),
-                    title: const Text('Temple Night Mode', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600)),
-                    subtitle: const Text('Dark saffron theme', style: TextStyle(fontFamily: 'Poppins')),
+                    title: const Text('Temple Night Mode',
+                        style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w600)),
+                    subtitle: const Text('Dark saffron theme',
+                        style: TextStyle(fontFamily: 'Poppins')),
                     value: appProvider.isDark,
                     activeColor: AppColors.saffron,
                     onChanged: (_) => appProvider.toggleTheme(),
@@ -115,26 +191,35 @@ class ProfileScreen extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // ── About ─────────────────────────────────────
-                _SectionLabel('About'),
+                const _SectionLabel('About'),
                 Card(
                   child: Column(
                     children: [
-                      ListTile(
-                        leading: const Text('🛕', style: TextStyle(fontSize: 26)),
-                        title: const Text('Devasthan', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600)),
-                        subtitle: const Text('Version 1.0.0', style: TextStyle(fontFamily: 'Poppins')),
+                      const ListTile(
+                        leading:
+                            Text('🛕', style: TextStyle(fontSize: 26)),
+                        title: Text('Devasthan',
+                            style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w600)),
+                        subtitle: Text('Version 1.0.0',
+                            style: TextStyle(fontFamily: 'Poppins')),
                       ),
                       const Divider(height: 0),
                       ListTile(
-                        leading: const Text('📖', style: TextStyle(fontSize: 26)),
-                        title: const Text('Privacy Policy', style: TextStyle(fontFamily: 'Poppins')),
+                        leading:
+                            const Text('📖', style: TextStyle(fontSize: 26)),
+                        title: const Text('Privacy Policy',
+                            style: TextStyle(fontFamily: 'Poppins')),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {},
                       ),
                       const Divider(height: 0),
                       ListTile(
-                        leading: const Text('⭐', style: TextStyle(fontSize: 26)),
-                        title: const Text('Rate on Play Store', style: TextStyle(fontFamily: 'Poppins')),
+                        leading:
+                            const Text('⭐', style: TextStyle(fontSize: 26)),
+                        title: const Text('Rate on Play Store',
+                            style: TextStyle(fontFamily: 'Poppins')),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {},
                       ),
@@ -184,7 +269,12 @@ class _AdBanner extends StatelessWidget {
       height: 52,
       color: Colors.grey.shade200,
       child: const Center(
-        child: Text('AD BANNER', style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Colors.grey, letterSpacing: 2)),
+        child: Text('AD BANNER',
+            style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 12,
+                color: Colors.grey,
+                letterSpacing: 2)),
       ),
     );
   }

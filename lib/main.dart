@@ -23,7 +23,10 @@ class DevasthanApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AppProvider()),
-        ChangeNotifierProvider(create: (_) => MandirProvider()),
+        ChangeNotifierProxyProvider0<MandirProvider>(
+          create: (_) => MandirProvider()..init(),
+          update: (_, prev) => prev ?? (MandirProvider()..init()),
+        ),
         ChangeNotifierProvider(create: (_) => AartiProvider()),
         ChangeNotifierProxyProvider0<StreakProvider>(
           create: (_) => StreakProvider()..init(),

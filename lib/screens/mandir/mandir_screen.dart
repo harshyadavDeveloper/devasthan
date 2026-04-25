@@ -9,7 +9,7 @@ class MandirScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<MandirProvider>();
-    final theme = Theme.of(context);
+    Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
