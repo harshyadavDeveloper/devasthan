@@ -18,39 +18,25 @@ class AlarmProvider extends ChangeNotifier {
   late Box _box;
   TimeOfDay _time = const TimeOfDay(hour: 6, minute: 0);
   bool _enabled = false;
+  bool _initialized = false;
 
   TimeOfDay get time => _time;
   bool get enabled => _enabled;
 
-  // How long until next alarm fires
-  Duration get timeUntilAlarm {
-    final now = DateTime.now();
-    var target =
-        DateTime(now.year, now.month, now.day, _time.hour, _time.minute);
-    if (target.isBefore(now)) target = target.add(const Duration(days: 1));
-    return target.difference(now);
-  }
-
-  String get timeLabel {
-    final period = _time.hour < 12 ? 'AM' : 'PM';
-    final hour12 = _time.hourOfPeriod == 0 ? 12 : _time.hourOfPeriod;
-    final m = _time.minute.toString().padLeft(2, '0');
-    return '${hour12.toString().padLeft(2, '0')}:$m $period';
-  }
-
-  // e.g. "in 3 hours 20 minutes" or "in 45 minutes"
-  String get timeUntilLabel {
-    final d = timeUntilAlarm;
-    final h = d.inHours;
-    final m = d.inMinutes.remainder(60);
-    if (h > 0 && m > 0) return 'in $h hr ${m} min';
-    if (h > 0) return 'in $h hour${h == 1 ? '' : 's'}';
-    return 'in $m minute${m == 1 ? '' : 's'}';
+  AlarmProvider() {
+    init(); // ✅ auto-init safely
   }
 
   Future<void> init() async {
-    tz_data.initializeTimeZones();
+    if (_initialized) return;
 
+    WidgetsFlutterBinding.ensureInitialized();
+
+    // ✅ Timezone fix (IMPORTANT)
+    tz_data.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
+
+    // ✅ Hive
     _box = await Hive.openBox(_boxName);
     _time = TimeOfDay(
       hour: _box.get(_keyHour, defaultValue: 6),
@@ -58,41 +44,61 @@ class AlarmProvider extends ChangeNotifier {
     );
     _enabled = _box.get(_keyEnabled, defaultValue: false);
 
+    // ✅ Notification init
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
     const ios = DarwinInitializationSettings();
-    const settings = InitializationSettings(android: android, iOS: ios);
-    await _notif.initialize(settings);
 
-    // Request permissions
-    await _notif
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
+    await _notif.initialize(
+      const InitializationSettings(android: android, iOS: ios),
+    );
 
-    await _notif
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestExactAlarmsPermission();
+    final androidImpl = _notif.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
 
-    if (_enabled) await _schedule();
+    // ✅ Request permissions (Android 13+)
+    final notifGranted = await androidImpl?.requestNotificationsPermission();
+    final alarmGranted = await androidImpl?.requestExactAlarmsPermission();
+
+    debugPrint('Notif permission: $notifGranted');
+    debugPrint('Exact alarm permission: $alarmGranted');
+
+    // ✅ Create notification channel
+    const channel = AndroidNotificationChannel(
+      'devasthan_aarti_channel',
+      'Daily Aarti Alarm',
+      description: 'Daily aarti reminder',
+      importance: Importance.max,
+    );
+
+    await androidImpl?.createNotificationChannel(channel);
+
+    _initialized = true;
+
+    if (_enabled) {
+      await _schedule();
+    }
   }
 
   Future<void> setTime(TimeOfDay time) async {
     _time = time;
     await _box.put(_keyHour, time.hour);
     await _box.put(_keyMinute, time.minute);
+
     if (_enabled) await _schedule();
+
     notifyListeners();
   }
 
   Future<void> toggleAlarm(bool val) async {
     _enabled = val;
     await _box.put(_keyEnabled, val);
+
     if (val) {
       await _schedule();
     } else {
       await _notif.cancel(_notifId);
     }
+
     notifyListeners();
   }
 
@@ -100,6 +106,7 @@ class AlarmProvider extends ChangeNotifier {
     await _notif.cancel(_notifId);
 
     final now = tz.TZDateTime.now(tz.local);
+
     var scheduled = tz.TZDateTime(
       tz.local,
       now.year,
@@ -112,26 +119,26 @@ class AlarmProvider extends ChangeNotifier {
     if (scheduled.isBefore(now)) {
       scheduled = scheduled.add(const Duration(days: 1));
     }
+    debugPrint("NOW: $now");
+    debugPrint("SCHEDULED: $scheduled");
+
+    debugPrint('Scheduling alarm at: $scheduled');
 
     final androidDetails = AndroidNotificationDetails(
       'devasthan_aarti_channel',
       'Daily Aarti Alarm',
-      channelDescription: 'Daily aarti reminder from Devasthan',
+      channelDescription: 'Daily aarti reminder',
       importance: Importance.max,
       priority: Priority.max,
       playSound: true,
       enableVibration: true,
+      icon: '@mipmap/ic_launcher',
       vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
       fullScreenIntent: true,
-      visibility: NotificationVisibility.public,
       category: AndroidNotificationCategory.alarm,
     );
 
-    const iosDetails = DarwinNotificationDetails(
-      presentSound: true,
-      presentBadge: true,
-      presentAlert: true,
-    );
+    const iosDetails = DarwinNotificationDetails();
 
     await _notif.zonedSchedule(
       _notifId,
@@ -139,10 +146,63 @@ class AlarmProvider extends ChangeNotifier {
       'Your daily devotion awaits. Jai Shri Ram! 🪔',
       scheduled,
       NotificationDetails(android: androidDetails, iOS: iosDetails),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+
+      // ✅ fallback-safe mode (IMPORTANT)
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
+
       matchDateTimeComponents: DateTimeComponents.time,
+    );
+  }
+
+  // ✅ Format time like 06:30 AM
+  String get timeLabel {
+    final period = _time.hour < 12 ? 'AM' : 'PM';
+    final hour12 = _time.hourOfPeriod == 0 ? 12 : _time.hourOfPeriod;
+    final m = _time.minute.toString().padLeft(2, '0');
+    return '${hour12.toString().padLeft(2, '0')}:$m $period';
+  }
+
+// ✅ Time remaining until next alarm
+  Duration get timeUntilAlarm {
+    final now = DateTime.now();
+    var target =
+        DateTime(now.year, now.month, now.day, _time.hour, _time.minute);
+
+    if (target.isBefore(now)) {
+      target = target.add(const Duration(days: 1));
+    }
+
+    return target.difference(now);
+  }
+
+// ✅ Human readable label
+  String get timeUntilLabel {
+    final d = timeUntilAlarm;
+    final h = d.inHours;
+    final m = d.inMinutes.remainder(60);
+
+    if (h > 0 && m > 0) return 'in $h hr $m min';
+    if (h > 0) return 'in $h hour${h == 1 ? '' : 's'}';
+    return 'in $m minute${m == 1 ? '' : 's'}';
+  }
+
+  // ✅ Debug helper (VERY useful)
+  Future<void> testNotification() async {
+    await _notif.show(
+      999,
+      'Test Notification',
+      'If you see this, notifications work 🎉',
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'test_channel',
+          'Test',
+          importance: Importance.max,
+          priority: Priority.max,
+        ),
+      ),
     );
   }
 }

@@ -316,12 +316,15 @@ class _AdBanner extends StatelessWidget {
       height: 52,
       color: Colors.grey.shade200,
       child: const Center(
-        child: Text('AD BANNER',
-            style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 12,
-                color: Colors.grey,
-                letterSpacing: 2)),
+        child: Text(
+          'AD BANNER',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 12,
+            color: Colors.grey,
+            letterSpacing: 2,
+          ),
+        ),
       ),
     );
   }

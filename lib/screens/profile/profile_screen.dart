@@ -156,6 +156,15 @@ class ProfileScreen extends StatelessWidget {
                                                 color: Colors.white70,
                                               ),
                                             ),
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                context
+                                                    .read<AlarmProvider>()
+                                                    .testNotification();
+                                              },
+                                              child: const Text(
+                                                  'Test Notification'),
+                                            ),
                                           ],
                                         ),
                                       ],
@@ -196,8 +205,7 @@ class ProfileScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       const ListTile(
-                        leading:
-                            Text('🛕', style: TextStyle(fontSize: 26)),
+                        leading: Text('🛕', style: TextStyle(fontSize: 26)),
                         title: Text('Devasthan',
                             style: TextStyle(
                                 fontFamily: 'Poppins',
