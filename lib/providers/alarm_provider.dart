@@ -24,7 +24,7 @@ class AlarmProvider extends ChangeNotifier {
   bool get enabled => _enabled;
 
   AlarmProvider() {
-    init(); // ✅ auto-init safely
+    init();
   }
 
   Future<void> init() async {

@@ -156,15 +156,15 @@ class ProfileScreen extends StatelessWidget {
                                                 color: Colors.white70,
                                               ),
                                             ),
-                                            ElevatedButton(
-                                              onPressed: () {
-                                                context
-                                                    .read<AlarmProvider>()
-                                                    .testNotification();
-                                              },
-                                              child: const Text(
-                                                  'Test Notification'),
-                                            ),
+                                            // ElevatedButton(
+                                            //   onPressed: () {
+                                            //     context
+                                            //         .read<AlarmProvider>()
+                                            //         .testNotification();
+                                            //   },
+                                            //   child: const Text(
+                                            //       'Test Notification'),
+                                            // ),
                                           ],
                                         ),
                                       ],
