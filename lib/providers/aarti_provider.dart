@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 
 enum PlayerState { idle, playing, paused }
 
@@ -17,6 +18,7 @@ class AartiTrack {
 }
 
 class AartiProvider extends ChangeNotifier {
+  final _player = AudioPlayer();
   PlayerState _state = PlayerState.idle;
   AartiTrack? _current;
   Duration _position = Duration.zero;
@@ -93,63 +95,76 @@ class AartiProvider extends ChangeNotifier {
   // ── Controls ───────────────────────────────────────────────
   // TODO: replace simulation with just_audio calls below
 
-  Future<void> play(AartiTrack track) async {
-    _current = track;
-    _position = Duration.zero;
-    _duration = const Duration(minutes: 6); // placeholder till just_audio
-    _state = PlayerState.playing;
-    notifyListeners();
-    _simulate();
+  AartiProvider() {
+    _player.positionStream.listen((pos) {
+      _position = pos;
+      notifyListeners();
+    });
+    _player.durationStream.listen((dur) {
+      if (dur != null) { _duration = dur; notifyListeners(); }
+    });
+    _player.playerStateStream.listen((s) {
+      if (s.processingState == ProcessingState.completed) {
+        if (_repeat && _current != null) {
+          _player.seek(Duration.zero);
+          _player.play();
+        } else {
+          _state = PlayerState.idle;
+          _position = Duration.zero;
+          notifyListeners();
+        }
+      }
+    });
   }
 
-  Future<void> pause() async {
+ 
+  Future<void> play(AartiTrack track) async {
+    _current = track;
+    _state = PlayerState.playing;
+    notifyListeners();
+    await _player.setAsset(track.asset);
+    await _player.play();
+  }
+
+ Future<void> pause() async {
+    await _player.pause();
     _state = PlayerState.paused;
     notifyListeners();
   }
 
+
   Future<void> resume() async {
+    await _player.play();
     _state = PlayerState.playing;
     notifyListeners();
-    _simulate();
   }
 
   Future<void> stop() async {
+    await _player.stop();
     _state = PlayerState.idle;
-    _position = Duration.zero;
     _current = null;
+    _position = Duration.zero;
     notifyListeners();
   }
 
-  void seekTo(double val) {
-    _position = Duration(seconds: (val * _duration.inSeconds).round());
-    notifyListeners();
+   void seekTo(double val) {
+    _player.seek(Duration(seconds: (val * _duration.inSeconds).round()));
   }
 
-  void toggleRepeat() {
+   void toggleRepeat() {
     _repeat = !_repeat;
     notifyListeners();
   }
 
-  // Simulates playback tick — remove when just_audio is added
-  void _simulate() async {
-    while (_state == PlayerState.playing && _position < _duration) {
-      await Future.delayed(const Duration(seconds: 1));
-      if (_state == PlayerState.playing) {
-        _position += const Duration(seconds: 1);
-        notifyListeners();
-      }
-    }
-    if (_position >= _duration) {
-      if (_repeat && _current != null) {
-        _position = Duration.zero;
-        _simulate();
-      } else {
-        _state = PlayerState.idle;
-        _position = Duration.zero;
-        notifyListeners();
-      }
-    }
+   @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
   }
+
+
+  // Simulates playback tick — remove when just_audio is added
+  
 
   // ── just_audio wiring (uncomment in Phase 4 final) ────────
   // import 'package:just_audio/just_audio.dart';
