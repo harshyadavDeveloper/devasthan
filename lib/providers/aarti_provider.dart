@@ -101,7 +101,10 @@ class AartiProvider extends ChangeNotifier {
       notifyListeners();
     });
     _player.durationStream.listen((dur) {
-      if (dur != null) { _duration = dur; notifyListeners(); }
+      if (dur != null) {
+        _duration = dur;
+        notifyListeners();
+      }
     });
     _player.playerStateStream.listen((s) {
       if (s.processingState == ProcessingState.completed) {
@@ -117,7 +120,6 @@ class AartiProvider extends ChangeNotifier {
     });
   }
 
- 
   Future<void> play(AartiTrack track) async {
     _current = track;
     _state = PlayerState.playing;
@@ -126,12 +128,11 @@ class AartiProvider extends ChangeNotifier {
     await _player.play();
   }
 
- Future<void> pause() async {
+  Future<void> pause() async {
     await _player.pause();
     _state = PlayerState.paused;
     notifyListeners();
   }
-
 
   Future<void> resume() async {
     await _player.play();
@@ -147,24 +148,22 @@ class AartiProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-   void seekTo(double val) {
+  void seekTo(double val) {
     _player.seek(Duration(seconds: (val * _duration.inSeconds).round()));
   }
 
-   void toggleRepeat() {
+  void toggleRepeat() {
     _repeat = !_repeat;
     notifyListeners();
   }
 
-   @override
+  @override
   void dispose() {
     _player.dispose();
     super.dispose();
   }
 
-
   // Simulates playback tick — remove when just_audio is added
-  
 
   // ── just_audio wiring (uncomment in Phase 4 final) ────────
   // import 'package:just_audio/just_audio.dart';
