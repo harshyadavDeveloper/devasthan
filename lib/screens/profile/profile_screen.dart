@@ -37,7 +37,7 @@ class ProfileScreen extends StatelessWidget {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                                color: AppColors.saffron.withOpacity(0.3),
+                                color: AppColors.saffron.withAlpha(77),
                                 blurRadius: 16)
                           ],
                         ),
@@ -96,7 +96,7 @@ class ProfileScreen extends StatelessWidget {
                           style: const TextStyle(fontFamily: 'Poppins'),
                         ),
                         value: alarmProvider.enabled,
-                        activeColor: AppColors.saffron,
+                        activeThumbColor: AppColors.saffron,
                         onChanged: alarmProvider.toggleAlarm,
                       ),
                       if (alarmProvider.enabled) ...[
@@ -193,7 +193,7 @@ class ProfileScreen extends StatelessWidget {
                     subtitle: const Text('Dark saffron theme',
                         style: TextStyle(fontFamily: 'Poppins')),
                     value: appProvider.isDark,
-                    activeColor: AppColors.saffron,
+                    activeThumbColor: AppColors.saffron,
                     onChanged: (_) => appProvider.toggleTheme(),
                   ),
                 ),

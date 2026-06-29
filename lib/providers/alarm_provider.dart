@@ -29,14 +29,11 @@ class AlarmProvider extends ChangeNotifier {
 
   Future<void> init() async {
     if (_initialized) return;
+    _initialized = true;
 
-    WidgetsFlutterBinding.ensureInitialized();
-
-    // ✅ Timezone fix (IMPORTANT)
     tz_data.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
+    tz.setLocalLocation(tz.getLocation('Asia/Kolkata')); // ✅ smart for this app
 
-    // ✅ Hive
     _box = await Hive.openBox(_boxName);
     _time = TimeOfDay(
       hour: _box.get(_keyHour, defaultValue: 6),
@@ -44,10 +41,8 @@ class AlarmProvider extends ChangeNotifier {
     );
     _enabled = _box.get(_keyEnabled, defaultValue: false);
 
-    // ✅ Notification init
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
     const ios = DarwinInitializationSettings();
-
     await _notif.initialize(
       const InitializationSettings(android: android, iOS: ios),
     );
@@ -55,28 +50,29 @@ class AlarmProvider extends ChangeNotifier {
     final androidImpl = _notif.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
 
-    // ✅ Request permissions (Android 13+)
-    final notifGranted = await androidImpl?.requestNotificationsPermission();
-    final alarmGranted = await androidImpl?.requestExactAlarmsPermission();
-
-    debugPrint('Notif permission: $notifGranted');
-    debugPrint('Exact alarm permission: $alarmGranted');
-
-    // ✅ Create notification channel
+    // ✅ Create channel first — always, before permissions
     const channel = AndroidNotificationChannel(
       'devasthan_aarti_channel',
       'Daily Aarti Alarm',
-      description: 'Daily aarti reminder',
+      description: 'Daily aarti reminder from Devasthan',
       importance: Importance.max,
     );
-
     await androidImpl?.createNotificationChannel(channel);
 
-    _initialized = true;
+    // ✅ Then request permissions safely
+    try {
+      final notifGranted = await androidImpl?.requestNotificationsPermission();
+      debugPrint('Notif permission: $notifGranted');
 
-    if (_enabled) {
-      await _schedule();
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      final alarmGranted = await androidImpl?.requestExactAlarmsPermission();
+      debugPrint('Exact alarm permission: $alarmGranted');
+    } catch (e) {
+      debugPrint('Permission error (safe to ignore): $e');
     }
+
+    if (_enabled) await _schedule();
   }
 
   Future<void> setTime(TimeOfDay time) async {

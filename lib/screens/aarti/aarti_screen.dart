@@ -62,7 +62,7 @@ class _NowPlayingCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-              color: AppColors.saffron.withOpacity(0.35),
+              color: AppColors.saffron.withAlpha(89),
               blurRadius: 16,
               offset: const Offset(0, 4)),
         ],
@@ -75,7 +75,7 @@ class _NowPlayingCard extends StatelessWidget {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withAlpha(51),
                     borderRadius: BorderRadius.circular(14)),
                 child: const Center(
                     child: Text('🙏', style: TextStyle(fontSize: 28))),
@@ -184,7 +184,7 @@ class _TrackTile extends StatelessWidget {
                 height: 48,
                 decoration: BoxDecoration(
                   color: isActive
-                      ? AppColors.saffron.withOpacity(0.15)
+                      ? AppColors.saffron.withAlpha(38)
                       : AppColors.turmeric,
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -289,8 +289,9 @@ class _PlayerControls extends StatelessWidget {
             onPressed: () {
               final idx = AartiProvider.catalog
                   .indexWhere((t) => t.id == provider.current?.id);
-              if (idx < AartiProvider.catalog.length - 1)
+              if (idx < AartiProvider.catalog.length - 1) {
                 provider.play(AartiProvider.catalog[idx + 1]);
+              }
             },
           ),
 

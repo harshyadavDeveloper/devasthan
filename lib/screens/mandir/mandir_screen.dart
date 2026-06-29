@@ -120,10 +120,10 @@ class _MandirCanvas extends StatelessWidget {
           end: Alignment.bottomCenter,
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.gold.withOpacity(0.5), width: 2),
+        border: Border.all(color: AppColors.gold.withAlpha(128), width: 2),
         boxShadow: [
           BoxShadow(
-              color: AppColors.gold.withOpacity(0.2),
+              color: AppColors.gold.withAlpha(51),
               blurRadius: 16,
               spreadRadius: 2),
         ],
@@ -258,7 +258,7 @@ class _BottomPickerState extends State<_BottomPicker>
         color: theme.scaffoldBackgroundColor,
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withAlpha(15),
               blurRadius: 8,
               offset: const Offset(0, -2))
         ],
@@ -279,9 +279,9 @@ class _BottomPickerState extends State<_BottomPicker>
           Expanded(
             child: TabBarView(
               controller: _tabCtrl,
-              children: [
-                const _ItemRow(items: MandirProvider.deities),
-                const _ItemRow(items: MandirProvider.decor),
+              children: const [
+                _ItemRow(items: MandirProvider.deities),
+                _ItemRow(items: MandirProvider.decor),
               ],
             ),
           ),
@@ -313,10 +313,9 @@ class _ItemRow extends StatelessWidget {
             decoration: BoxDecoration(
               color: theme.cardTheme.color, // ← was hardcoded Colors.white
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+              border: Border.all(color: AppColors.gold.withAlpha(77)),
               boxShadow: [
-                BoxShadow(
-                    color: AppColors.saffron.withOpacity(0.06), blurRadius: 6)
+                BoxShadow(color: AppColors.saffron.withAlpha(15), blurRadius: 6)
               ],
             ),
             child: Column(
@@ -324,14 +323,17 @@ class _ItemRow extends StatelessWidget {
               children: [
                 Text(item.emoji, style: const TextStyle(fontSize: 28)),
                 const SizedBox(height: 4),
-                Text(item.name,
-                    style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
+                Text(
+                  item.name,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),

@@ -24,7 +24,7 @@ class AppTheme {
         primary: AppColors.saffron,
         secondary: AppColors.gold,
         surface: Colors.white,
-        background: AppColors.sandalwood,
+        // background: AppColors.sandalwood,
       ),
       scaffoldBackgroundColor: AppColors.sandalwood,
       appBarTheme: const AppBarTheme(
@@ -83,7 +83,7 @@ class AppTheme {
         primary: AppColors.saffronLight,
         secondary: AppColors.gold,
         surface: AppColors.templeBrown,
-        background: AppColors.templeBlack,
+        // background: AppColors.templeBlack,
       ),
       scaffoldBackgroundColor: AppColors.templeBlack,
       appBarTheme: const AppBarTheme(
