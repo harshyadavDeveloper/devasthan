@@ -91,7 +91,7 @@ lib/
 
 ```bash
 # Clone the repo
-git clone https://github.com/YOUR_USERNAME/devasthan.git
+git clone https://github.com/harshyadavDeveloper/devasthan.git
 cd devasthan
 
 # Install dependencies
