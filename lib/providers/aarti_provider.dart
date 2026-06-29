@@ -106,6 +106,10 @@ class AartiProvider extends ChangeNotifier {
         notifyListeners();
       }
     });
+    _player.playingStream.listen((playing) {
+      _state = playing ? PlayerState.playing : PlayerState.paused;
+      notifyListeners();
+    });
     _player.playerStateStream.listen((s) {
       if (s.processingState == ProcessingState.completed) {
         if (_repeat && _current != null) {

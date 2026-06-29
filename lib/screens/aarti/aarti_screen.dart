@@ -25,8 +25,7 @@ class AartiScreen extends StatelessWidget {
               separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (context, i) {
                 final track = AartiProvider.catalog[i];
-                final isActive = provider.current?.id == track.id;
-                return _TrackTile(track: track, isActive: isActive);
+                return _TrackTile(track: track);
               },
             ),
           ),
@@ -154,12 +153,12 @@ class _NowPlayingCard extends StatelessWidget {
 
 class _TrackTile extends StatelessWidget {
   final AartiTrack track;
-  final bool isActive;
-  const _TrackTile({required this.track, required this.isActive});
+  const _TrackTile({required this.track}); // ← remove isActive param
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.read<AartiProvider>();
+    final provider = context.watch<AartiProvider>();
+    final isActive = provider.current?.id == track.id; // ← compute here
     final theme = Theme.of(context);
 
     return Card(
@@ -178,7 +177,6 @@ class _TrackTile extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           child: Row(
             children: [
-              // ── Icon ─────────────────────────────────────────
               Container(
                 width: 48,
                 height: 48,
@@ -196,8 +194,6 @@ class _TrackTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 14),
-
-              // ── Title ─────────────────────────────────────────
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,8 +215,6 @@ class _TrackTile extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // ── Play/Pause icon ───────────────────────────────
               Icon(
                 isActive && provider.isPlaying
                     ? Icons.pause_circle_outline_rounded
