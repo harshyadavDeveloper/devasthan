@@ -7,13 +7,13 @@ class AartiTrack {
   final String id;
   final String title;
   final String deity;
-  final String asset; // assets/audio/filename.mp3
+  final String url; // assets/audio/filename.mp3
 
   const AartiTrack({
     required this.id,
     required this.title,
     required this.deity,
-    required this.asset,
+    required this.url,
   });
 }
 
@@ -42,49 +42,60 @@ class AartiProvider extends ChangeNotifier {
 
   String _format(Duration d) {
     final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    final s = d.inSeconds
+        .remainder(60)
+        .toString()
+        .padLeft(2, '0'); // TODO: complete and commit
     return '$m:$s';
   }
 
   // ── Catalog ────────────────────────────────────────────────
   // Add your mp3 files to assets/audio/ and match names here
   // For now tracks are listed — just_audio wired in next step
+  static const _base = 'https://bhajans-development.zohostratus.in';
   static const List<AartiTrack> catalog = [
     AartiTrack(
-        id: 'ganesh_1',
-        title: 'Jai Ganesh Jai Ganesh Deva',
-        deity: 'Ganesha',
-        asset: 'assets/audio/jai_ganesh.mp3'),
+      id: 'ganesh_1',
+      title: 'Jai Ganesh Jai Ganesh Deva',
+      deity: 'Ganesha',
+      url: '$_base/jai_ganesh.mp3',
+    ),
     AartiTrack(
-        id: 'shiv_1',
-        title: 'Om Jai Shiv Omkara',
-        deity: 'Shiva',
-        asset: 'assets/audio/om_jai_shiv.mp3'),
+      id: 'shiv_1',
+      title: 'Om Jai Shiv Omkara',
+      deity: 'Shiva',
+      url: '$_base/om_jai_shiv.mp3',
+    ),
     AartiTrack(
-        id: 'lakshmi_1',
-        title: 'Om Jai Lakshmi Mata',
-        deity: 'Lakshmi',
-        asset: 'assets/audio/jai_lakshmi.mp3'),
+      id: 'lakshmi_1',
+      title: 'Om Jai Lakshmi Mata',
+      deity: 'Lakshmi',
+      url: '$_base/jai_lakshmi.mp3',
+    ),
     AartiTrack(
-        id: 'hanuman_1',
-        title: 'Jai Hanuman Gyan Gun Sagar',
-        deity: 'Hanuman',
-        asset: 'assets/audio/jai_hanuman.mp3'),
+      id: 'hanuman_1',
+      title: 'Jai Hanuman Gyan Gun Sagar',
+      deity: 'Hanuman',
+      url: '$_base/jai_hanuman.mp3',
+    ),
     AartiTrack(
-        id: 'krishna_1',
-        title: 'Achyutam Keshavam',
-        deity: 'Krishna',
-        asset: 'assets/audio/achyutam.mp3'),
+      id: 'krishna_1',
+      title: 'Achyutam Keshavam',
+      deity: 'Krishna',
+      url: '$_base/achyutam.mp3',
+    ),
     AartiTrack(
-        id: 'durga_1',
-        title: 'Jai Ambe Gauri',
-        deity: 'Durga',
-        asset: 'assets/audio/jai_ambe.mp3'),
+      id: 'durga_1',
+      title: 'Jai Ambe Gauri',
+      deity: 'Durga',
+      url: '$_base/jai_ambe.mp3',
+    ),
     AartiTrack(
-        id: 'saraswati_1',
-        title: 'Jai Saraswati Mata',
-        deity: 'Saraswati',
-        asset: 'assets/audio/jai_saraswati.mp3'),
+      id: 'saraswati_1',
+      title: 'Jai Saraswati Mata',
+      deity: 'Saraswati',
+      url: '$_base/jai_saraswati.mp3',
+    ),
   ];
 
   AartiTrack get dailyTrack {
@@ -128,7 +139,7 @@ class AartiProvider extends ChangeNotifier {
     _current = track;
     _state = PlayerState.playing;
     notifyListeners();
-    await _player.setAsset(track.asset);
+    await _player.setUrl(track.url);
     await _player.play();
   }
 
