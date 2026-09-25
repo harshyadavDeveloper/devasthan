@@ -7,7 +7,7 @@ class AartiTrack {
   final String id;
   final String title;
   final String deity;
-  final String url; // assets/audio/filename.mp3
+  final String url; 
 
   const AartiTrack({
     required this.id,
@@ -45,7 +45,7 @@ class AartiProvider extends ChangeNotifier {
     final s = d.inSeconds
         .remainder(60)
         .toString()
-        .padLeft(2, '0'); // TODO: complete and commit
+        .padLeft(2, '0'); 
     return '$m:$s';
   }
 
@@ -104,7 +104,6 @@ class AartiProvider extends ChangeNotifier {
   }
 
   // ── Controls ───────────────────────────────────────────────
-  // TODO: replace simulation with just_audio calls below
 
   AartiProvider() {
     _player.positionStream.listen((pos) {
